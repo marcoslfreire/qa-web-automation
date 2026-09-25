@@ -13,13 +13,9 @@ public final class ConfigReader {
                 .getClassLoader()
                 .getResourceAsStream("config/test.properties")) {
 
-            if (input == null) {
-                throw new IllegalStateException(
-                        "Arquivo config/test.properties não encontrado."
-                );
+            if (input != null) {
+                PROPERTIES.load(input);
             }
-
-            PROPERTIES.load(input);
 
         } catch (IOException e) {
             throw new IllegalStateException(
@@ -34,6 +30,16 @@ public final class ConfigReader {
 
     public static String get(String key) {
 
+        String envKey = obterNomeVariavelAmbiente(key);
+
+        if (envKey != null) {
+            String envValue = System.getenv(envKey);
+
+            if (envValue != null && !envValue.isBlank()) {
+                return envValue;
+            }
+        }
+
         String value = PROPERTIES.getProperty(key);
 
         if (value == null || value.isBlank()) {
@@ -43,5 +49,14 @@ public final class ConfigReader {
         }
 
         return value;
+    }
+
+    private static String obterNomeVariavelAmbiente(String key) {
+
+        return switch (key) {
+            case "saucedemo.username" -> "SAUCEDEMO_USERNAME";
+            case "saucedemo.password" -> "SAUCEDEMO_PASSWORD";
+            default -> null;
+        };
     }
 }
